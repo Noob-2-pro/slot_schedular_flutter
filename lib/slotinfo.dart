@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:time_slot_maker/slotSchedular.dart';
 import 'components/slotchip.dart';
 
 class SlotInfo extends StatefulWidget {
@@ -13,12 +14,19 @@ class SlotInfo extends StatefulWidget {
 
 class _SlotInfoState extends State<SlotInfo> {
   int isSelected = -1;
-  List availableDays = [1, 2, 3, 4, 5, 6];
   List availableSlots = [];
   List notAvailableDays = [];
   int selectedWeekDay = 1;
   bool isDateSelected = false;
   String? bookedTime;
+  DateTime startTime = DateTime.now();
+  DateTime endTime = DateTime.now();
+  DateTime today = DateTime.now();
+  DateTime bookingDateTime = DateTime.now();
+  bool isBooked = false;
+
+  List availableDays = [1, 2, 3, 4, 5, 6];
+  List bookedSlots = ["2022-03-23 16:00:00.000", "2022-03-26 10:50:00.000", "2022-03-29 09:30:00.000"];
   List finalSlots = [
     [
       '16:0',
@@ -35,10 +43,6 @@ class _SlotInfoState extends State<SlotInfo> {
       [1, 3, 5, 6, 2]
     ]
   ];
-  DateTime startTime = DateTime.now();
-  DateTime endTime = DateTime.now();
-  DateTime today = DateTime.now();
-  DateTime bookingDateTime = DateTime.now();
 
   double toDouble(TimeOfDay myTime) => myTime.hour + myTime.minute / 60.0;
 
@@ -96,11 +100,30 @@ class _SlotInfoState extends State<SlotInfo> {
     setState(() {});
   }
 
+  checkIfBooked(String slotTime) {
+    String label = slotTime.toString().split('-')[0];
+    int hour = int.parse(label.split(':')[0]);
+    int min = int.parse(label.split(' ')[0].split(':')[1]);
+    String amPm = label.split(' ')[1];
+    if (amPm == 'PM') {
+      hour += 12;
+    }
+    DateTime checkTime = DateTime(bookingDateTime.year, bookingDateTime.month, bookingDateTime.day, hour, min);
+    if (bookedSlots.contains(checkTime.toString())) {
+      isBooked = true;
+    } else {
+      isBooked = false;
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     List daystoBlackout = [1, 2, 3, 4, 5, 6, 7];
     notAvailableDays = daystoBlackout.where((item) => !availableDays.contains(item)).toList();
-    //TODO : fetch list of available days at init state and store in availableDays variable
+    //TODO : fetch list of available days from provider model and store in availableDays variable
+    // TODO : fetch list of final slots from provider model and store in finalSlots variable
+    // TODO : fetch  list of booked slots
     super.initState();
   }
 
@@ -152,30 +175,40 @@ class _SlotInfoState extends State<SlotInfo> {
           SizedBox(
             height: 20.h,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: ElevatedButton(
-                onPressed: () {
-                  if (isSelected != -1) {
-                    // send api req for booking slot
-                    // TimeOfDay bookingTime = DateTime()
-                    int hour = int.parse(bookedTime!.split(':')[0]);
-                    int min = int.parse(bookedTime!.split(' ')[0].split(':')[1]);
-                    String amPm = bookedTime!.split(' ')[1];
-                    if (amPm == 'PM') {
-                      hour += 12;
-                    }
-                    bookingDateTime =
-                        DateTime(bookingDateTime.year, bookingDateTime.month, bookingDateTime.day, hour, min);
-                    print(bookingDateTime);
-                  }
-                },
-                child: const Center(
-                  child: Text("Confirm Booking"),
-                )),
-          ),
+          confirmSlotBooking(),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return SlotSchedular();
+              }));
+            },
+            child: Text("Next page"),
+          )
         ],
       ),
+    );
+  }
+
+  Padding confirmSlotBooking() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: ElevatedButton(
+          onPressed: () {
+            if (isSelected != -1) {
+              int hour = int.parse(bookedTime!.split(':')[0]);
+              int min = int.parse(bookedTime!.split(' ')[0].split(':')[1]);
+              String amPm = bookedTime!.split(' ')[1];
+              if (amPm == 'PM') {
+                hour += 12;
+              }
+              bookingDateTime = DateTime(bookingDateTime.year, bookingDateTime.month, bookingDateTime.day, hour, min);
+              // TODO: send api req for booking slot and append this timing bookedSlots for user
+              print(bookingDateTime);
+            }
+          },
+          child: const Center(
+            child: Text("Confirm Booking"),
+          )),
     );
   }
 
@@ -188,166 +221,44 @@ class _SlotInfoState extends State<SlotInfo> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            child: Text(
-              "Available Slots",
-              // style: bodyTextStyle.copyWith(color: Colors.grey, fontSize: 15.sp, fontFamily: robottoFontTextStyle),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Available Slots",
+                // style: bodyTextStyle.copyWith(color: Colors.grey, fontSize: 15.sp, fontFamily: robottoFontTextStyle),
+              ),
+            ],
           ),
-          Wrap(
-              spacing: 8.w,
-              children: List.generate(
-                availableSlots.length,
-                (index) => SlotChip(
-                  text: availableSlots[index],
-                  index: index,
-                  isSelected: isSelected,
-                  onTap: (value) {
-                    setState(() {
-                      isSelected = index;
-                    });
-                    print(availableSlots);
-                    bookedTime = availableSlots[index].toString().split('-')[0].toString();
-                    // print(bookedTime);
-                  },
-                ),
-              )),
+          availableSlots.isEmpty
+              ? const Center(
+                  child: Card(
+                      child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text("No slots available for selected day"),
+                )))
+              : Wrap(
+                  spacing: 8.w,
+                  children: List.generate(
+                    availableSlots.length,
+                    (index) {
+                      checkIfBooked(availableSlots[index]);
+                      return SlotChip(
+                        text: availableSlots[index],
+                        index: index,
+                        isSelected: isSelected,
+                        isBooked: isBooked,
+                        onTap: (value) {
+                          setState(() {
+                            isSelected = index;
+                          });
+                          bookedTime = availableSlots[index].toString().split('-')[0].toString();
+                        },
+                      );
+                    },
+                  )),
         ],
       ),
     );
   }
-
-  // calendar() {
-  //   return //calendar body
-  //       Padding(
-  //     padding: const EdgeInsets.only(
-  //       left: 15,
-  //       right: 15,
-  //     ),
-  //     child: Column(
-  //       children: [
-  //         Row(
-  //           children: [
-  //             Text(
-  //               "Book your Service",
-  //               // style: bodyTextStyle.copyWith(fontSize: 18.sp, fontFamily: robottoFontTextStyle),
-  //             ),
-  //           ],
-  //         ),
-  //         SizedBox(height: 12.h),
-  //         Row(
-  //           children: [
-  //             Text(
-  //               "Choose your appointment date",
-  //               // style: bodyTextStyle.copyWith(color: Colors.grey, fontSize: 15.sp, fontFamily: robottoFontTextStyle),
-  //             ),
-  //           ],
-  //         ),
-  //         Material(
-  //           elevation: 1,
-  //           child: Container(
-  //             // margin: EdgeInsets.only(top: 30),
-  //             child: Transform.scale(
-  //               scale: 0.9,
-  //               child: CalendarCarousel<Event>(
-  //                 // markedDatesMap: markedDateMap,
-  //                 customGridViewPhysics: BouncingScrollPhysics(),
-  //                 onDayPressed: (date, events) {
-  //                   setState(() {
-  //                     bookingDates = date;
-  //                     print(bookingDates);
-  //                     print(events);
-  //                   });
-  //                 },
-  //                 // headerTextStyle: headingTextStyle.copyWith(
-  //                 //   fontFamily: robottoFontTextStyle,
-  //                 //   fontSize: 13.sp,
-  //                 // ),
-  //                 pageSnapping: true,
-  //                 nextDaysTextStyle: TextStyle(color: Colors.white),
-  //                 prevDaysTextStyle: TextStyle(color: Colors.white),
-  //                 leftButtonIcon: Icon(Icons.arrow_back_ios, size: 16),
-  //                 rightButtonIcon: Icon(Icons.arrow_forward_ios, size: 16),
-  //                 showOnlyCurrentMonthDate: false,
-  //                 todayButtonColor: Colors.yellow,
-  //                 selectedDayButtonColor: Colors.orange,
-  //                 markedDateMoreShowTotal: true,
-  //                 showWeekDays: true,
-  //                 firstDayOfWeek: 1,
-  //                 weekFormat: false,
-  //                 showHeader: true,
-  //                 height: 340.h,
-  //                 selectedDateTime: bookingDates,
-  //                 targetDateTime: bookingDates, // targetDateTime,
-  //                 showIconBehindDayText: true,
-  //                 markedDateShowIcon: true,
-  //                 markedDateIconMaxShown: 2,
-  //                 // weekdayTextStyle: bodyTextStyle.copyWith(fontSize: 15.sp, color: Color(0xff191919)),
-  //                 //            daysTextStyle: mediumRegularTextStyle,
-  //                 // weekendTextStyle: bodyTextStyle.copyWith(fontSize: 15.sp, color: Color(0xff191919)),
-  //                 // selectedDayTextStyle: bodyTextStyle.copyWith(color: Colors.white, fontSize: 15.sp),
-  //                 markedDateIconBuilder: (event) {
-  //                   return event.icon ?? Icon(Icons.help_outline);
-  //                 },
-  //                 minSelectedDate: bookingDates.subtract(Duration(days: 360)),
-  //                 maxSelectedDate: bookingDates.add(Duration(days: 360)),
-  //                 onCalendarChanged: (DateTime date) {
-  //                   // this.setState(() {
-  //                   //   print('hello');
-  //                   //   model.targetDateTime = date;
-  //                   //   model.currentMonth =
-  //                   //       DateFormat.yMMM().format(model.targetDateTime);
-  //                   // });
-  //                 },
-  //                 customWeekDayBuilder: (weekday, weekdayName) {
-  //                   return Text(
-  //                     "$weekdayName",
-  //                   );
-  //                 },
-  //                 customDayBuilder: (
-  //                   isSelectable,
-  //                   index,
-  //                   isSelectedDay,
-  //                   isToday,
-  //                   isPrevMonthDay,
-  //                   textStyle,
-  //                   isNextMonthDay,
-  //                   isThisMonthDay,
-  //                   day,
-  //                 ) {
-  //                   return isPrevMonthDay
-  //                       ? Container()
-  //                       : isNextMonthDay
-  //                           ? Container()
-  //                           : Container(
-  //                               decoration: BoxDecoration(
-  //                                 shape: BoxShape.circle,
-  //                                 color: Colors.grey.withOpacity(0.5),
-  //                               ),
-  //                               child: Center(
-  //                                 child: Text(
-  //                                   "${day.day}",
-  //                                   // style: bodyTextStyle.copyWith(
-  //                                   // fontSize: 12.sp,
-  //                                   // fontFamily: robottoFontTextStyle,
-  //                                   // ),
-  //                                 ),
-  //                               ),
-  //                             );
-  //                 },
-  //                 onDayLongPressed: (DateTime date) {
-  //                   //                Get.to(GiftScreen());
-  //                 },
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         SizedBox(height: 12.h),
-  //         SizedBox(height: 12.h),
-  //       ],
-  //     ),
-  //   );
-  // }
-
 }
