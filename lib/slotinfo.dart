@@ -24,9 +24,10 @@ class _SlotInfoState extends State<SlotInfo> {
   DateTime today = DateTime.now();
   DateTime bookingDateTime = DateTime.now();
   bool isBooked = false;
-
   List availableDays = [1, 2, 3, 4, 5, 6];
   List bookedSlots = ["2022-03-23 16:00:00.000", "2022-03-26 10:50:00.000", "2022-03-29 09:30:00.000"];
+  List notAvailableSlots = ["2022-03-22 09:30:00.000", "2022-03-28 10:10:00.000"];
+  List notAvaliableDate = ['2022-03-25 00:00:00.000'];
   List finalSlots = [
     [
       '16:0',
@@ -109,7 +110,7 @@ class _SlotInfoState extends State<SlotInfo> {
       hour += 12;
     }
     DateTime checkTime = DateTime(bookingDateTime.year, bookingDateTime.month, bookingDateTime.day, hour, min);
-    if (bookedSlots.contains(checkTime.toString())) {
+    if (bookedSlots.contains(checkTime.toString()) || notAvailableSlots.contains(checkTime.toString())) {
       isBooked = true;
     } else {
       isBooked = false;
@@ -124,6 +125,7 @@ class _SlotInfoState extends State<SlotInfo> {
     //TODO : fetch list of available days from provider model and store in availableDays variable
     // TODO : fetch list of final slots from provider model and store in finalSlots variable
     // TODO : fetch  list of booked slots
+    // TODO : notAvailableSlots from provider
     super.initState();
   }
 
@@ -147,7 +149,7 @@ class _SlotInfoState extends State<SlotInfo> {
           SizedBox(height: 25.h),
           Row(
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 2),
                 child: Text(
                   "Choose your appointment date",
@@ -165,7 +167,7 @@ class _SlotInfoState extends State<SlotInfo> {
             ),
             onSelectionChanged: _onSelectionChanged,
             selectableDayPredicate: (DateTime dateTime) {
-              if (notAvailableDays.contains(dateTime.weekday)) {
+              if (notAvailableDays.contains(dateTime.weekday) || notAvaliableDate.contains(dateTime.toString())) {
                 return false;
               }
               return true;

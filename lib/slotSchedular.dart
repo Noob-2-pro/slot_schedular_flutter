@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'components/durationGap.dart';
 import 'components/multiSelectChip.dart';
@@ -26,9 +27,13 @@ class _SlotSchedularState extends State<SlotSchedular> {
   TimeOfDay? endTime = TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1);
   int duration = 30;
   int gap = 0;
+
+  // TODO : varibales to be available for user
   List selectedRepeatDays = [];
   List selectedDays = [];
   List finalSlots = [];
+  List notAvailableSlots = [];
+  List notAvaliableDate = [];
 
 // format of finalSlots = [startTime, endTime, duration, gap, selectedRepeatDays];
 
@@ -36,6 +41,18 @@ class _SlotSchedularState extends State<SlotSchedular> {
     pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
     pickedTime ??= TimeOfDay.now();
     return pickedTime;
+  }
+
+  cleaner() {
+    DateTime yesterday = DateTime.now().subtract(const Duration(days: 1));
+    notAvaliableDate.removeWhere((element) => yesterday.compareTo(DateTime.parse(element)) == 1);
+    notAvailableSlots.removeWhere((element) => yesterday.compareTo(DateTime.parse(element)) == 1);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    cleaner();
   }
 
   @override
@@ -57,12 +74,66 @@ class _SlotSchedularState extends State<SlotSchedular> {
               height: 10.h,
             ),
             addTimings(),
+            nonAvailableDate(context),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Text("I am not available at :"),
+                      TextButton(
+                          onPressed: () {
+                            DatePicker.showDateTimePicker(context,
+                                showTitleActions: true,
+                                minTime: DateTime.now(),
+                                maxTime: DateTime.now().add(const Duration(days: 180)), onChanged: (date) {
+                              print('change $date');
+                            }, onConfirm: (date) {
+                              setState(() {
+                                notAvailableSlots.add(date);
+                              });
+                            }, currentTime: DateTime.now());
+                          },
+                          child: Text(
+                            'Select Date',
+                            style: TextStyle(color: Colors.blue),
+                          )),
+                    ],
+                  ),
+                  Wrap(
+                    spacing: 10.w,
+                    children: List.generate(notAvailableSlots.length, (index) {
+                      DateTime dateTime = DateTime.parse(notAvailableSlots[index].toString());
+                      String text = dateTime.toString().split('.')[0];
+
+                      return InputChip(
+                        label: Text(text),
+                        onDeleted: () {
+                          setState(() {
+                            notAvailableSlots.remove(notAvaliableDate[index]);
+                          });
+                        },
+                      );
+                    }),
+                  )
+                ],
+              ),
+            ),
             SizedBox(
               height: 20.h,
             ),
             const Text("Added Slots"),
             Column(
-              children: availableSlots() ?? [Container()],
+              children: availableSlots() ??
+                  [
+                    const Center(
+                        child: Card(
+                            child: Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Text("No slots created"),
+                    )))
+                  ],
             ),
           ]),
         ),
@@ -70,8 +141,57 @@ class _SlotSchedularState extends State<SlotSchedular> {
     );
   }
 
+  Padding nonAvailableDate(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text("I am not available on Date :"),
+              TextButton(
+                  onPressed: () {
+                    DatePicker.showDatePicker(context,
+                        showTitleActions: true,
+                        minTime: DateTime.now(),
+                        maxTime: DateTime.now().add(Duration(days: 180)), onChanged: (date) {
+                      print('change $date');
+                    }, onConfirm: (date) {
+                      setState(() {
+                        notAvaliableDate.add(date);
+                      });
+                    }, currentTime: DateTime.now());
+                  },
+                  child: Text(
+                    'Select Date',
+                    style: TextStyle(color: Colors.blue),
+                  )),
+            ],
+          ),
+          Wrap(
+            spacing: 10.w,
+            children: List.generate(notAvaliableDate.length, (index) {
+              DateTime dateTime = DateTime.parse(notAvaliableDate[index].toString());
+              String text = dateTime.day.toString() + '/' + dateTime.month.toString() + '/' + dateTime.year.toString();
+              return InputChip(
+                label: Text(text),
+                onDeleted: () {
+                  print('dkjskdas');
+                  setState(() {
+                    notAvaliableDate.remove(notAvaliableDate[index]);
+                  });
+                },
+              );
+            }),
+          )
+        ],
+      ),
+    );
+  }
+
   availableSlots() {
     List<Widget> addedSlots = [];
+
     finalSlots.forEach((element) {
       TimeOfDay startTime1 = TimeOfDay(
           hour: int.parse(element[0].toString().split(':')[0]), minute: int.parse(element[0].toString().split(':')[1]));
@@ -325,14 +445,6 @@ class _SlotSchedularState extends State<SlotSchedular> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Availability"),
-        // chip(
-        //     text: canEdit ? 'save' : 'Edit',
-        //     color: canEdit ? Colors.blue.shade200 : Colors.yellow.shade300,
-        //     onPressed: () {
-        //       setState(() {
-        //         canEdit = !canEdit;
-        //       });
-        //     }),
         Wrap(
           spacing: 5.w,
           children: List.generate(

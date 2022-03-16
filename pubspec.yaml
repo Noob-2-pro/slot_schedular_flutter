@@ -38,6 +38,7 @@ dependencies:
   multiselect: ^0.0.4
   intl: ^0.17.0
   syncfusion_flutter_datepicker: ^19.4.56
+  flutter_datetime_picker: ^1.5.1
 
 dev_dependencies:
   flutter_test:
