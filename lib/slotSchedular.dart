@@ -32,7 +32,8 @@ class _SlotSchedularState extends State<SlotSchedular> {
   List selectedRepeatDays = [];
   List selectedDays = [];
   List finalSlots = [];
-  List notAvailableSlots = [];
+  // List notAvailableSlots = [];
+  List notAvailableSlots = ["2022-03-14 09:30:00.000", "2022-03-28 10:10:00.000"];
   List notAvaliableDate = [];
 
 // format of finalSlots = [startTime, endTime, duration, gap, selectedRepeatDays];
@@ -47,7 +48,10 @@ class _SlotSchedularState extends State<SlotSchedular> {
     DateTime yesterday = DateTime.now().subtract(const Duration(days: 1));
     notAvaliableDate.removeWhere((element) => yesterday.compareTo(DateTime.parse(element)) == 1);
     notAvailableSlots.removeWhere((element) => yesterday.compareTo(DateTime.parse(element)) == 1);
+    print(notAvailableSlots);
   }
+
+  double toDouble(TimeOfDay myTime) => myTime.hour + myTime.minute / 60.0;
 
   @override
   void initState() {
@@ -416,11 +420,16 @@ class _SlotSchedularState extends State<SlotSchedular> {
   Widget addMoreButton() {
     return InkWell(
       onTap: () {
-        List repeatdays = List.unmodifiable(selectedRepeatDays);
-        String slotStartTime = '${startTime!.hour}:${startTime!.minute}';
-        String slotEndTime = '${endTime!.hour}:${endTime!.minute}';
-        finalSlots.add([slotStartTime, slotEndTime, duration, gap, repeatdays]);
-        setState(() {});
+        if (toDouble(endTime!) > toDouble(startTime!)) {
+          List repeatdays = List.unmodifiable(selectedRepeatDays);
+          String slotStartTime = '${startTime!.hour}:${startTime!.minute}';
+          String slotEndTime = '${endTime!.hour}:${endTime!.minute}';
+          finalSlots.add([slotStartTime, slotEndTime, duration, gap, repeatdays]);
+          setState(() {});
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Invalid Time : End Time Should not be less than start timne ")));
+        }
       },
       child: Card(
         child: Padding(

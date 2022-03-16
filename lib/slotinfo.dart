@@ -45,7 +45,6 @@ class _SlotInfoState extends State<SlotInfo> {
     ]
   ];
 
-  double toDouble(TimeOfDay myTime) => myTime.hour + myTime.minute / 60.0;
 
   covertIntoDateTime(dynamic element) {
     TimeOfDay startTime1 = TimeOfDay(
