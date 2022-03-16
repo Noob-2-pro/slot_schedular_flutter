@@ -1,6 +1,7 @@
 # time_slot_maker
 
 A new Flutter project.
+an app module to schedule slots and book slots
 
 ## Getting Started
 
