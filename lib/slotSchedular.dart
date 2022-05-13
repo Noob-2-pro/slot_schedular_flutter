@@ -27,14 +27,13 @@ class _SlotSchedularState extends State<SlotSchedular> {
   TimeOfDay? endTime = TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1);
   int duration = 30;
   int gap = 0;
+  List selectedRepeatDays = [];
 
   // TODO : varibales to be available for user
-  List selectedRepeatDays = [];
   List selectedDays = [];
   List finalSlots = [];
-  // List notAvailableSlots = [];
-  List notAvailableSlots = ["2022-03-14 09:30:00.000", "2022-03-28 10:10:00.000"];
   List notAvaliableDate = [];
+  List notAvailableSlots = ["2022-03-14 09:30:00.000", "2022-03-28 10:10:00.000"];
 
 // format of finalSlots = [startTime, endTime, duration, gap, selectedRepeatDays];
 
@@ -69,77 +68,81 @@ class _SlotSchedularState extends State<SlotSchedular> {
                 Navigator.pop(context, [finalSlots, selectedDays]);
               },
               icon: Icon(Icons.arrow_back))),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
-        child: SingleChildScrollView(
-          child: Column(children: [
-            availability(),
-            SizedBox(
-              height: 10.h,
-            ),
-            addTimings(),
-            nonAvailableDate(context),
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Column(
-                children: [
-                  Row(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                availability(),
+                SizedBox(
+                  height: 10.h,
+                ),
+                addTimings(),
+                nonAvailableDate(context),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Column(
                     children: [
-                      const Text("I am not available at :"),
-                      TextButton(
-                          onPressed: () {
-                            DatePicker.showDateTimePicker(context,
-                                showTitleActions: true,
-                                minTime: DateTime.now(),
-                                maxTime: DateTime.now().add(const Duration(days: 180)), onChanged: (date) {
-                              print('change $date');
-                            }, onConfirm: (date) {
+                      Row(
+                        children: [
+                          const Text("I am not available at :"),
+                          TextButton(
+                              onPressed: () {
+                                DatePicker.showDateTimePicker(context,
+                                    showTitleActions: true,
+                                    minTime: DateTime.now(),
+                                    maxTime: DateTime.now().add(const Duration(days: 180)), onChanged: (date) {
+                                  print('change $date');
+                                }, onConfirm: (date) {
+                                  setState(() {
+                                    notAvailableSlots.add(date);
+                                  });
+                                }, currentTime: DateTime.now());
+                              },
+                              child: Text(
+                                'Select Date',
+                                style: TextStyle(color: Colors.blue),
+                              )),
+                        ],
+                      ),
+                      Wrap(
+                        spacing: 10.w,
+                        children: List.generate(notAvailableSlots.length, (index) {
+                          DateTime dateTime = DateTime.parse(notAvailableSlots[index].toString());
+                          String text = dateTime.toString().split('.')[0];
+
+                          return InputChip(
+                            label: Text(text),
+                            onDeleted: () {
                               setState(() {
-                                notAvailableSlots.add(date);
+                                notAvailableSlots.remove(notAvaliableDate[index]);
                               });
-                            }, currentTime: DateTime.now());
-                          },
-                          child: Text(
-                            'Select Date',
-                            style: TextStyle(color: Colors.blue),
-                          )),
+                            },
+                          );
+                        }),
+                      )
                     ],
                   ),
-                  Wrap(
-                    spacing: 10.w,
-                    children: List.generate(notAvailableSlots.length, (index) {
-                      DateTime dateTime = DateTime.parse(notAvailableSlots[index].toString());
-                      String text = dateTime.toString().split('.')[0];
-
-                      return InputChip(
-                        label: Text(text),
-                        onDeleted: () {
-                          setState(() {
-                            notAvailableSlots.remove(notAvaliableDate[index]);
-                          });
-                        },
-                      );
-                    }),
-                  )
-                ],
-              ),
+                ),
+                SizedBox(
+                  height: 20.h,
+                ),
+                const Text("Added Slots"),
+                Column(
+                  children: availableSlots() ??
+                      [
+                        const Center(
+                            child: Card(
+                                child: Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Text("No slots created"),
+                        )))
+                      ],
+                ),
+              ],
             ),
-            SizedBox(
-              height: 20.h,
-            ),
-            const Text("Added Slots"),
-            Column(
-              children: availableSlots() ??
-                  [
-                    const Center(
-                        child: Card(
-                            child: Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Text("No slots created"),
-                    )))
-                  ],
-            ),
-          ]),
+          ),
         ),
       ),
     );

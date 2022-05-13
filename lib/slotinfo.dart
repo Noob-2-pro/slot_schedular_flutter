@@ -24,10 +24,14 @@ class _SlotInfoState extends State<SlotInfo> {
   DateTime today = DateTime.now();
   DateTime bookingDateTime = DateTime.now();
   bool isBooked = false;
-  List availableDays = [1, 2, 3, 4, 5, 6];
+
+  //TODO: add these for user
+
+  // after confirm
   List bookedSlots = ["2022-03-23 16:00:00.000", "2022-03-26 10:50:00.000", "2022-03-29 09:30:00.000"];
-  List notAvailableSlots = ["2022-03-22 09:30:00.000", "2022-03-28 10:10:00.000"];
-  List notAvaliableDate = ['2022-03-25 00:00:00.000'];
+
+  //
+  List availableDays = [1, 2, 3, 4, 5, 6];
   List finalSlots = [
     [
       '16:0',
@@ -45,6 +49,9 @@ class _SlotInfoState extends State<SlotInfo> {
     ]
   ];
 
+  List notAvaliableDate = ['2022-03-25 00:00:00.000'];
+
+  List notAvailableSlots = ["2022-03-22 09:30:00.000", "2022-03-28 10:10:00.000"];
 
   covertIntoDateTime(dynamic element) {
     TimeOfDay startTime1 = TimeOfDay(
@@ -117,6 +124,32 @@ class _SlotInfoState extends State<SlotInfo> {
     setState(() {});
   }
 
+  List<Map<String, String>> data = [
+    {
+      'name': 'Dev bhatahni',
+      'place': 'gujrat, India',
+      'Time slot': '2022-03-22 09:30:00.000',
+      'description': '',
+    },
+    {
+      'name': 'satyam',
+      'place': 'mumbai, India',
+      'Time_slot': '2022-03-30 16:30:00.000',
+      'description': '',
+    },
+    {
+      'name': 'satyam',
+      'place': 'mumbai, India',
+      'Time_slot': '2022-03-30 16:30:00.000',
+      'description': '',
+    },
+    {
+      'name': 'satyam',
+      'place': 'mumbai, India',
+      'Time_slot': '2022-03-30 16:30:00.000',
+      'description': '',
+    },
+  ];
   @override
   void initState() {
     List daystoBlackout = [1, 2, 3, 4, 5, 6, 7];
@@ -125,12 +158,13 @@ class _SlotInfoState extends State<SlotInfo> {
     // TODO : fetch list of final slots from provider model and store in finalSlots variable
     // TODO : fetch  list of booked slots
     // TODO : notAvailableSlots from provider
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return SingleChildScrollView(
       child: Column(
         children: [
           SizedBox(
@@ -184,7 +218,7 @@ class _SlotInfoState extends State<SlotInfo> {
               }));
             },
             child: Text("Next page"),
-          )
+          ),
         ],
       ),
     );

@@ -12,26 +12,29 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-        designSize: Size(375, 812),
-      builder :()=> MaterialApp(
+      designSize: Size(375, 812),
+      builder: () => MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home:  MyHomePage(title: 'Flutter Demo Home Page'),
+        home: MyHomePage(title: 'Flutter Demo Home Page'),
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-   MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   String title;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title),),
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Colors.red ,
+      ),
       body: SlotInfo(),
     );
   }
